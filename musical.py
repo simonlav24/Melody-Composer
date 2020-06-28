@@ -17,7 +17,7 @@ save = False
 def soundFunc(samples, time):
 	# result =  1 + np.sin(25*samples)#f0 
 	# result =  np.exp(- (1/(time*0.3))*samples) #f2
-	result =  -1/(1 + np.exp((-1/(0.15 * time)) * (samples - 0.5 * time))) + 1#f3
+	result =  (-1/(1 + np.exp((-1/(0.15 * time)) * (samples - 0.5 * time))) + 1)#f3
 	
 	if Vibrato:
 		result += np.sin(25*samples) 
@@ -86,21 +86,38 @@ a5 = 880.00
 b5 = 987.77
 
 c6 = 1046.50
-
-# chords
-Am = [c5, a4, e4, "Am"]
-C = [c5, g4, e4, "C"]
-G = [d5, g4, d4, "G"]
-D = [d5, a4, d4, "D"]
-Em = [b4, g4, e4, "Em"]
-Dm = [d5, a4, d4, "Dm"]
-F = [c5, a4, f4, "F"]
-
-Cchords = [Am, C, G, D, Em, Dm, F]
+d6 = 1174.66
+e6 = 1318.51
+f6 = 1396.91
+g6 = 1567.98
+a6 = 1760.00
+b6 = 1975.53
 
 rest = 0.1
-cMajor = [c5, d5, e5, f5, g5, a5, b5, c6]
-cMajorR = [c5, d5, e5, f5, g5, a5, b5, c6, rest]
+
+# chords
+A = [554.37, a4, e4, "A"]
+Am = [c5, a4, e4, "Am"]
+Bb = [d5, 466.16, f4, "Bb"]
+B = [622.25, b4, 369.99, "B"]
+C = [c5, g4, e4, "C"]
+D = [d5, a4, d4, "D"]
+Dm = [d5, a4, d4, "Dm"]
+E = [b4, 415.30, e4, "E"]
+Em = [b4, g4, e4, "Em"]
+F = [c5, a4, f4, "F"]
+G = [d5, g4, d4, "G"]
+
+
+
+Cchords = [Am, C, G, D, Em, Dm, F, Bb, E, A, B]
+
+rest = 0.1
+cMajor6 = [c6, d6, e6, f6, g6, a6, b6]
+cMajor5 = [c5, d5, e5, f5, g5, a5, b5]
+cMajor4 = [c4, d4, e4, f4, g4, a4, b4]
+
+scale = cMajor4 + cMajor5 + cMajor6 + [rest]
 
 tones = [1,2,4,8] #will divide by 8
 full = 0
@@ -137,9 +154,7 @@ def createHouse():
 		if full == 8:
 			break
 	for i in step:
-		freq = choice(cMajorR)
-		# if freq == rest:
-			# freq = choice([rest, choice(cMajorR)])
+		freq = choice(scale)
 		house.append((freq, i/8))
 	return house
 		
@@ -156,11 +171,11 @@ def createHouseClose():
 		if full == 8:
 			break
 	
-	j = randint(0,7)
+	j = randint(0,len(scale)-1)
 	for i in step:
 		
-		j = randint(j-2, min(j+2, 7))
-		freq = cMajorR[j]
+		j = randint(j-2, min(j+2, len(scale)-1))
+		freq = scale[j]
 			
 		house.append((freq, i/8))
 	return house
@@ -190,15 +205,15 @@ sheet += chordSheet(chords[1], 2, 2)
 sheet += chordSheet(chords[2], 2, 4)
 sheet += chordSheet(chords[3], 2, 6)
 
-sheet += sheetFromHouse(createHouseClose(), 0)
-sheet += sheetFromHouse(createHouseClose(), 1)
-sheet += sheetFromHouse(createHouseClose(), 2)
-sheet += sheetFromHouse(createHouseClose(), 3)
-								   
-sheet += sheetFromHouse(createHouseClose(), 4)
-sheet += sheetFromHouse(createHouseClose(), 5)
-sheet += sheetFromHouse(createHouseClose(), 6)
-sheet += sheetFromHouse(createHouseClose(), 7)
+sheet += sheetFromHouse(createHouse(), 0)
+sheet += sheetFromHouse(createHouse(), 1)
+sheet += sheetFromHouse(createHouse(), 2)
+sheet += sheetFromHouse(createHouse(), 3)
+#								   
+sheet += sheetFromHouse(createHouse(), 4)
+sheet += sheetFromHouse(createHouse(), 5)
+sheet += sheetFromHouse(createHouse(), 6)
+sheet += sheetFromHouse(createHouse(), 7)
 
 
 audio = sheet * (2**15 - 1) / np.max(np.abs(sheet))
