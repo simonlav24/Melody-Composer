@@ -6,21 +6,24 @@ from scipy.io.wavfile import write
 from datetime import datetime
 
 fs = 44100   # 44100 samples per second, can also try 22050
-songLength = 8
+
+tempo = 2 #seconds
+songLength = 4 * tempo
 
 chordVolume = 5
-noteVolume = 10
+noteVolume = 8
 
-Vibrato = True
+Vibrato = False
 save = False
 		
 def soundFunc(samples, time):
-	# result =  1 + np.sin(25*samples)#f0 
+	# result =  1 #f0 
 	# result =  np.exp(- (1/(time*0.3))*samples) #f2
-	result =  (-1/(1 + np.exp((-1/(0.15 * time)) * (samples - 0.5 * time))) + 1)#f3
+	# result =  (-1/(1 + np.exp((-1/(0.15 * time)) * (samples - 0.5 * time))) + 1)#f3
+	result = (-1/time)*(samples - time) #f4
 	
 	if Vibrato:
-		result += np.sin(25*samples) 
+		result += 0.5*np.sin(25*samples) 
 	return result
 
 def playNote(frequency, time = 0.1):
@@ -65,9 +68,8 @@ def noteSheet(frequency, time, start):
 	
 	return note
 	
-	
-	
 # notes
+rest = 0.1
 
 c4 = 261.63
 d4 = 293.66
@@ -93,8 +95,6 @@ g6 = 1567.98
 a6 = 1760.00
 b6 = 1975.53
 
-rest = 0.1
-
 # chords
 A = [554.37, a4, e4, "A"]
 Am = [c5, a4, e4, "Am"]
@@ -108,18 +108,15 @@ Em = [b4, g4, e4, "Em"]
 F = [c5, a4, f4, "F"]
 G = [d5, g4, d4, "G"]
 
+Cchords = [Am, C, G, D, Em, Dm, F, Bb, E]#, A, B]
 
-
-Cchords = [Am, C, G, D, Em, Dm, F, Bb, E, A, B]
-
-rest = 0.1
 cMajor6 = [c6, d6, e6, f6, g6, a6, b6]
 cMajor5 = [c5, d5, e5, f5, g5, a5, b5]
 cMajor4 = [c4, d4, e4, f4, g4, a4, b4]
 
 scale = cMajor4 + cMajor5 + cMajor6 + [rest]
 
-tones = [1,2,4,8] #will divide by 8
+tones = [0.5,1,2,4,8] #will divide by 8
 full = 0
 song = []
 
@@ -155,13 +152,14 @@ def createHouse():
 			break
 	for i in step:
 		freq = choice(scale)
-		house.append((freq, i/8))
+		house.append((freq, i/(8/tempo)))
 	return house
 		
 def createHouseClose():
 	full = 0
 	step = []
 	house = []
+	diff = 3
 	while True:
 		tone = choice(tones)
 		if full + tone > 8:
@@ -174,10 +172,11 @@ def createHouseClose():
 	j = randint(0,len(scale)-1)
 	for i in step:
 		
-		j = randint(j-2, min(j+2, len(scale)-1))
+		# j = randint(j-diff, min(j+diff, len(scale)-1))
+		j = randint(j-diff, j+diff) % len(scale)-1
 		freq = scale[j]
 			
-		house.append((freq, i/8))
+		house.append((freq, i/(8/tempo)))
 	return house
 
 def createSong():
@@ -192,7 +191,6 @@ def createSong():
 	song.append(song[1])
 	return song
 
-# playSong(createSong())
 
 chords = sample(Cchords, 4)
 chordString = chords[0][3] + " " + chords[1][3] + " " + chords[2][3]+ " " + chords[3][3]+ " "
@@ -200,21 +198,15 @@ print(chordString)
 
 sheet = np.arange(44100 * songLength) / fs
 
-sheet += chordSheet(chords[0], 2, 0)
-sheet += chordSheet(chords[1], 2, 2)
-sheet += chordSheet(chords[2], 2, 4)
-sheet += chordSheet(chords[3], 2, 6)
+sheet += chordSheet(chords[0], tempo, 0 * tempo)
+sheet += chordSheet(chords[1], tempo, 1 * tempo)
+sheet += chordSheet(chords[2], tempo, 2 * tempo)
+sheet += chordSheet(chords[3], tempo, 3 * tempo)
 
-sheet += sheetFromHouse(createHouse(), 0)
-sheet += sheetFromHouse(createHouse(), 1)
-sheet += sheetFromHouse(createHouse(), 2)
-sheet += sheetFromHouse(createHouse(), 3)
-#								   
-sheet += sheetFromHouse(createHouse(), 4)
-sheet += sheetFromHouse(createHouse(), 5)
-sheet += sheetFromHouse(createHouse(), 6)
-sheet += sheetFromHouse(createHouse(), 7)
-
+sheet += sheetFromHouse(createHouseClose(), 0 * tempo)
+sheet += sheetFromHouse(createHouseClose(), 1 * tempo)
+sheet += sheetFromHouse(createHouseClose(), 2 * tempo)
+sheet += sheetFromHouse(createHouseClose(), 3 * tempo)
 
 audio = sheet * (2**15 - 1) / np.max(np.abs(sheet))
 audio = audio.astype(np.int16)
@@ -230,8 +222,6 @@ dt_string = now.strftime("%d-%m-%Y %H-%M-%S")
 if save:
 	audio = np.int16(audio * 1)
 	write('musical/' + dt_string + " " + chordString + '.wav', fs, audio)
-
-
 
 
 
